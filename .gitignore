@@ -1,0 +1,19 @@
+.venv/
+__pycache__/
+*.db
+.env
+data/raw/*.csv
+_rubric_x/
+*.docx
+extension/_*
+_extension_dev_harness/
+*.png
+
+# ...but DO ship the extension's own icons (needed for it to load properly)
+!extension/icons/
+!extension/icons/*.png
+
+# Official College Board sample PDFs are large and re-downloadable
+# (scripts/build_ap_samples.py); ship the derived samples.json instead.
+data/ap/samples_raw/*.pdf
+data/ap/samples_raw/transcripts/

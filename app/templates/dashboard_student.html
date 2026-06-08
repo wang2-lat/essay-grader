@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="flex items-center justify-between mb-6">
+  <div>
+    <h1 class="text-2xl font-semibold">学生面板</h1>
+    <p class="text-slate-500 text-sm">你好，{{ user.display_name }}</p>
+  </div>
+  <a href="/submit" class="bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700">+ 提交作文</a>
+</div>
+
+<div class="grid md:grid-cols-2 gap-6">
+  <section class="bg-white rounded-xl border border-slate-200 p-5">
+    <h2 class="font-semibold mb-3">可选作业</h2>
+    {% if assignments %}
+    <ul class="divide-y divide-slate-100">
+      {% for a in assignments %}
+      <li class="py-3 flex items-center justify-between">
+        <div>
+          <p class="font-medium">{{ a.title }}</p>
+          <p class="text-xs text-slate-400">{{ a.essay_type }}{% if a.grade_level %} · {{ a.grade_level }}{% endif %}</p>
+        </div>
+        <a href="/submit?assignment_id={{ a.id }}" class="text-sm text-indigo-600 hover:underline">去写 →</a>
+      </li>
+      {% endfor %}
+    </ul>
+    {% else %}
+    <p class="text-sm text-slate-400">老师还没布置作业，你也可以直接<a href="/submit" class="text-indigo-600">自由提交</a>练习。</p>
+    {% endif %}
+  </section>
+
+  <section class="bg-white rounded-xl border border-slate-200 p-5">
+    <h2 class="font-semibold mb-3">我的作文</h2>
+    {% if subs %}
+    <ul class="divide-y divide-slate-100">
+      {% for sub in subs %}
+      <li class="py-3 flex items-center justify-between">
+        <a href="/submissions/{{ sub.id }}" class="text-sm text-slate-700 hover:text-indigo-600">{{ sub.title or '未命名' }}</a>
+        <span class="text-xs {% if sub.status=='error' %}text-red-500{% else %}text-slate-400{% endif %}">
+          {% if sub.status=='error' %}评分失败{% else %}{{ sub.created_at.strftime('%m-%d %H:%M') }}{% endif %}
+        </span>
+      </li>
+      {% endfor %}
+    </ul>
+    {% else %}
+    <p class="text-sm text-slate-400">还没提交过，点右上角写第一篇。</p>
+    {% endif %}
+  </section>
+</div>
+{% endblock %}

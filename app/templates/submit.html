@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="max-w-3xl mx-auto">
+  <h1 class="text-2xl font-semibold mb-6">提交作文</h1>
+  <form method="post" action="/submit" class="bg-white rounded-xl border border-slate-200 p-6 space-y-4" id="submit-form">
+    <div>
+      <label class="text-sm text-slate-600 block mb-1">关联作业</label>
+      <select name="assignment_id" class="w-full border border-slate-300 rounded-lg px-3 py-2 bg-white">
+        <option value="">— 自由练习（不关联作业）—</option>
+        {% for a in assignments %}
+        <option value="{{ a.id }}" {% if selected and selected.id==a.id %}selected{% endif %}>{{ a.title }} · {{ a.essay_type }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    {% if selected and selected.prompt %}
+    <div class="text-sm text-slate-600 bg-slate-50 border border-slate-200 rounded-lg p-3 whitespace-pre-wrap"><b>题目：</b>{{ selected.prompt }}</div>
+    {% endif %}
+    <div>
+      <label class="text-sm text-slate-600 block mb-1">标题（可选）</label>
+      <input name="title" class="w-full border border-slate-300 rounded-lg px-3 py-2" value="{{ selected.title if selected else '' }}">
+    </div>
+    <div>
+      <label class="text-sm text-slate-600 block mb-1">作文正文</label>
+      <textarea name="essay_text" rows="16" required class="w-full border border-slate-300 rounded-lg px-3 py-2 font-serif leading-relaxed" placeholder="把你的英文作文粘贴或输入在这里…"></textarea>
+    </div>
+    <div class="flex items-center gap-3">
+      <button id="submit-btn" class="bg-indigo-600 text-white rounded-lg px-5 py-2 font-medium hover:bg-indigo-700">提交并评分</button>
+      <span id="grading-hint" class="text-sm text-slate-400 hidden">⏳ 老师正在批改，约需 10–30 秒，请勿关闭页面…</span>
+    </div>
+  </form>
+</div>
+<script>
+  document.getElementById('submit-form').addEventListener('submit', function() {
+    document.getElementById('submit-btn').disabled = true;
+    document.getElementById('submit-btn').textContent = '批改中…';
+    document.getElementById('grading-hint').classList.remove('hidden');
+  });
+</script>
+{% endblock %}

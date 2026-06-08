@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="max-w-sm mx-auto mt-10 bg-white rounded-xl shadow-sm border border-slate-200 p-8">
+  <h1 class="text-xl font-semibold mb-1">登录</h1>
+  <p class="text-sm text-slate-500 mb-6">老师与学生通用入口</p>
+  {% if error %}<div class="mb-4 text-sm text-red-600 bg-red-50 rounded px-3 py-2">{{ error }}</div>{% endif %}
+  <form method="post" action="/login" class="space-y-4">
+    <input name="username" placeholder="用户名" required class="w-full border border-slate-300 rounded-lg px-3 py-2">
+    <input name="password" type="password" placeholder="密码" required class="w-full border border-slate-300 rounded-lg px-3 py-2">
+    <button class="w-full bg-indigo-600 text-white rounded-lg py-2 font-medium hover:bg-indigo-700">登录</button>
+  </form>
+  <p class="text-sm text-slate-500 mt-4">还没有账号？<a href="/register" class="text-indigo-600">注册</a></p>
+</div>
+{% endblock %}

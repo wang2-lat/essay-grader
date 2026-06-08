@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="sidepanel.css">
+  <title>Essay Grader</title>
+</head>
+<body>
+  <header>
+    <h1>📝 Essay Grader</h1>
+    <button id="settingsBtn" class="link" title="Settings">⚙︎</button>
+  </header>
+
+  <section id="input">
+    <div class="row controls">
+      <select id="mode" title="Grading mode">
+        <option value="ap">AP score (official rubric)</option>
+        <option value="quick">Quick language check</option>
+      </select>
+      <select id="frq" title="AP free-response question type">
+        <option value="rhetorical_analysis">Rhetorical Analysis</option>
+        <option value="argument">Argument</option>
+        <option value="synthesis">Synthesis</option>
+      </select>
+    </div>
+    <textarea id="essay" placeholder="Select an essay on any page → right-click “Grade selection with Essay Grader”, or just paste the essay here…"></textarea>
+    <div class="row">
+      <button id="grabBtn" class="btn-ghost">Grab selected text</button>
+      <button id="gradeBtn" class="btn">Grade</button>
+    </div>
+    <p id="status" class="status"></p>
+  </section>
+
+  <section id="apResult" hidden>
+    <div class="ap-total"><span id="apTotal">–</span><small>/6</small>
+      <span id="apLabel" class="muted"></span></div>
+    <div class="ap-rows" id="apRows"></div>
+    <div class="card"><h2>Teacher's comment</h2><p id="apComment"></p></div>
+    <div class="card" id="apFixesCard"><h2>Top fixes</h2><ol id="apFixes"></ol></div>
+  </section>
+
+  <section id="result" hidden>
+    <div class="overall">
+      <div class="overall-score"><span id="overall">–</span><small>/5</small></div>
+      <div class="bars" id="bars"></div>
+    </div>
+
+    <div class="card" id="summaryCard">
+      <h2>Teacher's comment</h2>
+      <p id="summary"></p>
+    </div>
+
+    <details class="card" id="lists">
+      <summary>Strengths / Top fixes</summary>
+      <div class="two">
+        <div><h3 class="good">✓ Done well</h3><ul id="strengths"></ul></div>
+        <div><h3 class="warn">→ Fix first</h3><ol id="priorities"></ol></div>
+      </div>
+    </details>
+
+    <div class="card">
+      <div class="ann-head">
+        <h2>Comments <span id="annCount" class="muted"></span></h2>
+        <label class="toggle"><input type="checkbox" id="showAll"> Show all</label>
+      </div>
+      <p class="muted tiny">Click a highlight to show/hide its comment — the note sits right under the sentence.</p>
+      <article id="essayBody" class="essay"></article>
+    </div>
+  </section>
+
+  <script src="sidepanel.js"></script>
+</body>
+</html>

@@ -1,0 +1,97 @@
+/* Annotation highlight colors by type — tuned to read like a teacher's pen. */
+.essay-body { white-space: pre-wrap; }
+
+mark.ann {
+  background: transparent;
+  border-bottom: 2px solid #c7d2fe;
+  padding: 0 1px;
+  cursor: pointer;
+  border-radius: 2px;
+  transition: background .12s ease;
+}
+mark.ann:hover, mark.ann.active { background: #eef2ff; }
+.ann-num {
+  font-size: 9px;
+  color: #6366f1;
+  vertical-align: super;
+  margin-left: 1px;
+  font-weight: 700;
+}
+
+/* per-type accent (underline + badge bg) */
+.ann-thesis        { border-bottom-color: #6366f1; }
+.ann-evidence      { border-bottom-color: #0ea5e9; }
+.ann-organization  { border-bottom-color: #8b5cf6; }
+.ann-cohesion      { border-bottom-color: #06b6d4; }
+.ann-vocabulary    { border-bottom-color: #f59e0b; }
+.ann-grammar       { border-bottom-color: #ef4444; }
+.ann-syntax        { border-bottom-color: #f97316; }
+.ann-conventions   { border-bottom-color: #ec4899; }
+.ann-style         { border-bottom-color: #14b8a6; }
+.ann-praise        { border-bottom-color: #22c55e; background: #f0fdf4; }
+
+.ann-badge { background: #e0e7ff; color: #4338ca; }
+.ann-badge.ann-grammar, .ann-badge.ann-syntax { background: #fee2e2; color: #b91c1c; }
+.ann-badge.ann-praise { background: #dcfce7; color: #15803d; }
+.ann-badge.ann-vocabulary { background: #fef3c7; color: #b45309; }
+
+.ann-card { transition: box-shadow .12s ease, border-color .12s ease; }
+.ann-card.active { border-color: #6366f1; box-shadow: 0 0 0 3px #e0e7ff; }
+
+/* ---- Google-Docs-style document layout ---- */
+.doc-area {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 320px;
+  gap: 40px;
+  align-items: start;
+}
+.doc-area .essay-body {
+  max-width: 70ch;
+}
+.margin-col { position: relative; min-height: 1px; }
+
+.ann-side {
+  position: absolute;
+  left: 0;
+  right: 0;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-left-width: 3px;
+  border-radius: 8px;
+  padding: 10px 12px;
+  cursor: pointer;
+  transition: top .18s cubic-bezier(.2,.7,.3,1), box-shadow .12s, border-color .12s, transform .12s;
+  will-change: top;
+}
+.ann-side:hover, .ann-side.active {
+  box-shadow: 0 4px 16px rgba(99,102,241,.16);
+  border-color: #c7d2fe;
+  transform: translateX(-4px);
+  z-index: 5;
+}
+/* left accent stripe by type */
+.ann-l-thesis       { border-left-color:#6366f1; } .ann-l-evidence     { border-left-color:#0ea5e9; }
+.ann-l-organization { border-left-color:#8b5cf6; } .ann-l-cohesion     { border-left-color:#06b6d4; }
+.ann-l-vocabulary   { border-left-color:#f59e0b; } .ann-l-grammar      { border-left-color:#ef4444; }
+.ann-l-syntax       { border-left-color:#f97316; } .ann-l-conventions  { border-left-color:#ec4899; }
+.ann-l-style        { border-left-color:#14b8a6; } .ann-l-praise       { border-left-color:#22c55e; }
+
+.doc-connector {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  overflow: visible;
+  z-index: 1;
+}
+mark.ann.active { background:#e0e7ff; box-shadow: inset 0 -2px 0 currentColor; }
+
+/* stacked fallback for narrow screens */
+@media (max-width: 900px) {
+  .doc-area { grid-template-columns: 1fr; gap: 20px; }
+  .margin-col { height: auto !important; }
+  .ann-side { position: static; margin-bottom: 8px; transform: none; }
+  .doc-connector { display: none; }
+}

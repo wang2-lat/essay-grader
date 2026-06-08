@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="max-w-sm mx-auto mt-10 bg-white rounded-xl shadow-sm border border-slate-200 p-8">
+  <h1 class="text-xl font-semibold mb-6">注册</h1>
+  {% if error %}<div class="mb-4 text-sm text-red-600 bg-red-50 rounded px-3 py-2">{{ error }}</div>{% endif %}
+  <form method="post" action="/register" class="space-y-4">
+    <input name="display_name" placeholder="姓名" required class="w-full border border-slate-300 rounded-lg px-3 py-2">
+    <input name="username" placeholder="用户名" required class="w-full border border-slate-300 rounded-lg px-3 py-2">
+    <input name="password" type="password" placeholder="密码" required class="w-full border border-slate-300 rounded-lg px-3 py-2">
+    <div>
+      <label class="text-sm text-slate-600 block mb-2">身份</label>
+      <div class="grid grid-cols-2 gap-3">
+        <label class="border border-slate-300 rounded-lg px-3 py-2 cursor-pointer flex items-center gap-2 has-[:checked]:border-indigo-500 has-[:checked]:bg-indigo-50">
+          <input type="radio" name="role" value="student" checked> 学生
+        </label>
+        <label class="border border-slate-300 rounded-lg px-3 py-2 cursor-pointer flex items-center gap-2 has-[:checked]:border-indigo-500 has-[:checked]:bg-indigo-50">
+          <input type="radio" name="role" value="teacher"> 老师
+        </label>
+      </div>
+    </div>
+    <button class="w-full bg-indigo-600 text-white rounded-lg py-2 font-medium hover:bg-indigo-700">创建账号</button>
+  </form>
+  <p class="text-sm text-slate-500 mt-4">已有账号？<a href="/login" class="text-indigo-600">登录</a></p>
+</div>
+{% endblock %}

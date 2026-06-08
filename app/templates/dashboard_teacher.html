@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="flex items-center justify-between mb-6">
+  <div>
+    <h1 class="text-2xl font-semibold">老师面板</h1>
+    <p class="text-slate-500 text-sm">你好，{{ user.display_name }}</p>
+  </div>
+  <a href="/assignments/new" class="bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700">+ 新建作业</a>
+</div>
+
+<div class="grid md:grid-cols-2 gap-6">
+  <section class="bg-white rounded-xl border border-slate-200 p-5">
+    <h2 class="font-semibold mb-3">我的作业</h2>
+    {% if assignments %}
+    <ul class="divide-y divide-slate-100">
+      {% for a in assignments %}
+      <li class="py-3 flex items-center justify-between">
+        <div>
+          <a href="/assignments/{{ a.id }}" class="font-medium text-indigo-700 hover:underline">{{ a.title }}</a>
+          <p class="text-xs text-slate-400">{{ a.essay_type }}{% if a.grade_level %} · {{ a.grade_level }}{% endif %}</p>
+        </div>
+        <a href="/assignments/{{ a.id }}" class="text-sm text-slate-400 hover:text-indigo-600">查看 →</a>
+      </li>
+      {% endfor %}
+    </ul>
+    {% else %}
+    <p class="text-sm text-slate-400">还没有作业，点右上角新建一个。</p>
+    {% endif %}
+  </section>
+
+  <section class="bg-white rounded-xl border border-slate-200 p-5">
+    <h2 class="font-semibold mb-3">最近提交</h2>
+    {% if subs %}
+    <ul class="divide-y divide-slate-100">
+      {% for sub in subs %}
+      <li class="py-3 flex items-center justify-between">
+        <a href="/submissions/{{ sub.id }}" class="text-sm text-slate-700 hover:text-indigo-600">{{ sub.title or '未命名' }}</a>
+        <span class="text-xs text-slate-400">{{ sub.created_at.strftime('%m-%d %H:%M') }}</span>
+      </li>
+      {% endfor %}
+    </ul>
+    {% else %}
+    <p class="text-sm text-slate-400">暂无学生提交。</p>
+    {% endif %}
+  </section>
+</div>
+{% endblock %}

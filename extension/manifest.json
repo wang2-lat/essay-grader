@@ -1,0 +1,38 @@
+{
+  "manifest_version": 3,
+  "name": "Essay Grader",
+  "version": "0.3.0",
+  "description": "Score essays on the official AP English Language 6-point analytic rubric (Thesis / Evidence & Commentary / Sophistication) — on Google Docs or any page. Also includes a quick language check.",
+  "icons": {
+    "16": "icons/icon16.png",
+    "32": "icons/icon32.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
+  "permissions": ["sidePanel", "contextMenus", "storage", "scripting", "activeTab"],
+  "host_permissions": [
+    "http://127.0.0.1:8011/*",
+    "http://localhost:8011/*",
+    "https://docs.google.com/*"
+  ],
+  "background": { "service_worker": "background.js" },
+  "content_scripts": [
+    {
+      "matches": ["https://docs.google.com/document/*"],
+      "js": ["content.js"],
+      "css": ["content.css"],
+      "run_at": "document_idle"
+    }
+  ],
+  "side_panel": { "default_path": "sidepanel.html" },
+  "action": {
+    "default_title": "Essay Grader (open the side panel, or use the resident button on Google Docs)",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "32": "icons/icon32.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    }
+  },
+  "options_page": "options.html"
+}

@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+{% block title %}配置评分后端 · 作文评分{% endblock %}
+{% block content %}
+<div class="max-w-2xl mx-auto">
+  <h1 class="text-2xl font-semibold mb-1">配置你自己的评分后端</h1>
+  <p class="text-sm text-slate-500 mb-6">
+    这个工具<strong>免费</strong>，代价是：你用<strong>自己的模型访问</strong>（本地模型或你自己的 API key），
+    全部跑在你本机。作者不经手你的任何流量或费用。
+  </p>
+
+  {% if saved %}
+  <div class="mb-4 text-sm text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-lg px-3 py-2">
+    已保存 ✓ 点下方“测试连接”确认可用。
+  </div>
+  {% endif %}
+
+  <form method="post" action="/setup" class="bg-white rounded-xl border border-slate-200 p-6 space-y-4">
+    <div>
+      <label class="text-sm text-slate-600 block mb-1">选择一个来源（自动填写）</label>
+      <select id="preset" class="w-full border border-slate-300 rounded-lg px-3 py-2 bg-white">
+        {% for key, p in presets.items() %}
+        <option value="{{ key }}"
+          data-base="{{ p.base_url }}" data-key="{{ p.api_key }}" data-model="{{ p.model }}" data-note="{{ p.note }}">
+          {{ p.label }}
+        </option>
+        {% endfor %}
+      </select>
+      <p id="note" class="text-xs text-slate-400 mt-1"></p>
+    </div>
+
+    <div>
+      <label class="text-sm text-slate-600 block mb-1">API 地址（OpenAI 兼容 /v1）</label>
+      <input name="base_url" id="base_url" required value="{{ current.base_url }}"
+        class="w-full border border-slate-300 rounded-lg px-3 py-2" placeholder="http://127.0.0.1:11434/v1">
+    </div>
+    <div>
+      <label class="text-sm text-slate-600 block mb-1">模型名</label>
+      <input name="model" id="model" required value="{{ current.model }}"
+        class="w-full border border-slate-300 rounded-lg px-3 py-2" placeholder="glm-4.6 / qwen2.5:7b / ...">
+    </div>
+    <div>
+      <label class="text-sm text-slate-600 block mb-1">
+        API key {% if current.has_key %}<span class="text-emerald-600 text-xs">（已存在，留空则不改动）</span>{% endif %}
+      </label>
+      <input name="api_key" id="api_key" type="password"
+        class="w-full border border-slate-300 rounded-lg px-3 py-2" placeholder="本地模型可随便填，如 ollama / lm-studio">
+      <p class="text-xs text-slate-400 mt-1">只写进你本机的 .env，绝不上传。</p>
+    </div>
+
+    <div class="flex items-center gap-3">
+      <button class="bg-indigo-600 text-white rounded-lg px-5 py-2 font-medium hover:bg-indigo-700">保存</button>
+      <button type="button" id="testBtn" class="px-4 py-2 border border-slate-300 rounded-lg text-slate-700 hover:bg-slate-50">测试连接</button>
+      <span id="testResult" class="text-sm"></span>
+      <a href="/dashboard" class="ml-auto text-sm text-slate-400 hover:text-indigo-600">去用 →</a>
+    </div>
+  </form>
+</div>
+
+<script>
+  const sel = document.getElementById('preset');
+  function applyPreset() {
+    const o = sel.selectedOptions[0];
+    const base = o.dataset.base, model = o.dataset.model, key = o.dataset.key;
+    if (base) document.getElementById('base_url').value = base;
+    if (model) document.getElementById('model').value = model;
+    if (key) document.getElementById('api_key').value = key;
+    document.getElementById('note').textContent = o.dataset.note || '';
+  }
+  sel.addEventListener('change', applyPreset);
+  document.getElementById('note').textContent = sel.selectedOptions[0].dataset.note || '';
+
+  document.getElementById('testBtn').addEventListener('click', async () => {
+    const r = document.getElementById('testResult');
+    r.textContent = '测试中…'; r.className = 'text-sm text-slate-400';
+    try {
+      const resp = await fetch('/setup/test');
+      const d = await resp.json();
+      if (d.ok) { r.textContent = '✓ 连接成功（' + d.model + '）'; r.className = 'text-sm text-emerald-600'; }
+      else { r.textContent = '✗ ' + d.error; r.className = 'text-sm text-red-600'; }
+    } catch (e) { r.textContent = '✗ ' + e.message; r.className = 'text-sm text-red-600'; }
+  });
+</script>
+{% endblock %}

@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}作文评分系统{% endblock %}</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="/static/app.css">
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen">
+  <nav class="bg-white border-b border-slate-200 sticky top-0 z-20">
+    <div class="max-w-6xl mx-auto px-4 h-14 flex items-center justify-between">
+      <a href="/dashboard" class="font-semibold text-slate-900">📝 作文评分</a>
+      {% if request.session.get('uid') %}
+      <div class="flex items-center gap-4 text-sm">
+        <span class="text-slate-500">{{ request.session.get('role','') }}</span>
+        <a href="/dashboard" class="hover:text-indigo-600">面板</a>
+        <a href="/logout" class="text-slate-400 hover:text-red-500">退出</a>
+      </div>
+      {% endif %}
+    </div>
+  </nav>
+  <main class="max-w-6xl mx-auto px-4 py-8">
+    {% block content %}{% endblock %}
+  </main>
+  <script src="/static/app.js"></script>
+</body>
+</html>
