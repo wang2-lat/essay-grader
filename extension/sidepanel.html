@@ -38,6 +38,15 @@
     <div class="ap-rows" id="apRows"></div>
     <div class="card"><h2>Teacher's comment</h2><p id="apComment"></p></div>
     <div class="card" id="apFixesCard"><h2>Top fixes</h2><ol id="apFixes"></ol></div>
+
+    <div class="card" id="apCommentsCard">
+      <div class="ann-head">
+        <h2>Margin notes <span id="apAnnCount" class="muted"></span></h2>
+        <label class="toggle"><input type="checkbox" id="apShowAll"> Show all</label>
+      </div>
+      <p class="muted tiny">Each note is tagged to the rubric row it speaks to. Click a highlight to show/hide its comment.</p>
+      <article id="apEssayBody" class="essay"></article>
+    </div>
   </section>
 
   <section id="result" hidden>

@@ -359,24 +359,9 @@ def _postprocess(result: dict[str, Any], essay_text: str) -> dict[str, Any]:
             scores[d] = overall
     result["scores"] = scores
 
-    anns = []
-    for a in result["annotations"]:
-        if not isinstance(a, dict):
-            continue
-        quote = (a.get("quote") or "").strip()
-        a["quote"] = quote
-        a["type"] = a.get("type") if a.get("type") in ANNOTATION_TYPES else "style"
-        a["comment"] = a.get("comment") or ""
-        a["suggestion"] = a.get("suggestion") or ""
-        start = essay_text.find(quote) if quote else -1
-        if start < 0 and quote:  # tolerate minor whitespace/case differences
-            start = _fuzzy_find(essay_text, quote)
-        a["start"] = start
-        a["end"] = start + len(quote) if start >= 0 else -1
-        a["located"] = start >= 0
-        anns.append(a)
-    anns.sort(key=lambda x: (x["start"] if x["start"] >= 0 else 1 << 30))
-    result["annotations"] = anns
+    result["annotations"] = locate_annotations(
+        essay_text, result["annotations"], ANNOTATION_TYPES, default_type="style",
+    )
     result["strengths"] = [s for s in result["strengths"] if isinstance(s, str) and s.strip()]
     result["priorities"] = [p for p in result["priorities"] if isinstance(p, str) and p.strip()]
     return result
@@ -397,3 +382,43 @@ def _fuzzy_find(text: str, quote: str) -> int:
     pattern = re.escape(norm_q).replace(r"\ ", r"\s+")
     m = re.search(pattern, text)
     return m.start() if m else -1
+
+
+def locate_annotations(
+    essay_text: str,
+    raw_annotations: Any,
+    allowed_types: list[str],
+    *,
+    default_type: str = "note",
+) -> list[dict[str, Any]]:
+    """Resolve each annotation's verbatim quote to a char span in the essay.
+
+    Shared by the ELLIPSE grader and the AP scorer so both enforce the SAME
+    deterministic verification: a margin note is only trusted to the extent its
+    quote actually appears in the student's text. Quotes that don't resolve are
+    kept (so the comment still surfaces in the panel) but flagged located=False,
+    and are never used for inline highlighting. This is the annotation analog of
+    the AP scorer's in-code gates — the model proposes, the code verifies.
+
+    Returns a list sorted by start offset; unlocated notes sort to the end.
+    Each annotation carries: quote, type, comment, suggestion, start, end, located.
+    Extra keys the caller set (e.g. "row") are preserved.
+    """
+    anns: list[dict[str, Any]] = []
+    for a in raw_annotations or []:
+        if not isinstance(a, dict):
+            continue
+        quote = (a.get("quote") or "").strip()
+        a["quote"] = quote
+        a["type"] = a.get("type") if a.get("type") in allowed_types else default_type
+        a["comment"] = a.get("comment") or ""
+        a["suggestion"] = a.get("suggestion") or ""
+        start = essay_text.find(quote) if quote else -1
+        if start < 0 and quote:  # tolerate minor whitespace/case differences
+            start = _fuzzy_find(essay_text, quote)
+        a["start"] = start
+        a["end"] = start + len(quote) if start >= 0 else -1
+        a["located"] = start >= 0
+        anns.append(a)
+    anns.sort(key=lambda x: (x["start"] if x["start"] >= 0 else 1 << 30))
+    return anns

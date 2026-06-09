@@ -362,6 +362,7 @@ class APGradeRequest(BaseModel):
     prompt: Optional[str] = None
     source_material: Optional[str] = None
     passes: int = 1
+    annotate: bool = True  # also return span-anchored, rubric-tagged margin notes
 
 
 @app.get("/api/health")
@@ -462,6 +463,7 @@ def api_ap_grade(body: APGradeRequest, x_api_key: str = Header(default="")):
             prompt_text=body.prompt,
             source_material=body.source_material,
             passes=max(1, min(body.passes, 5)),
+            annotate=body.annotate,
         )
     except Exception as exc:
         return JSONResponse({"error": grader._friendly_error(exc)}, status_code=502)

@@ -27,11 +27,15 @@ def main() -> int:
     ap.add_argument("frq_type", choices=["synthesis", "rhetorical_analysis", "argument"])
     ap.add_argument("essay_file")
     ap.add_argument("--passes", type=int, default=1)
+    ap.add_argument("--annotate", action="store_true",
+                    help="also produce span-anchored margin notes")
     ap.add_argument("--json", action="store_true", help="raw JSON output")
     args = ap.parse_args()
 
     essay = Path(args.essay_file).read_text(encoding="utf-8")
-    result = scorer.score_essay(essay, args.frq_type, passes=args.passes)
+    result = scorer.score_essay(
+        essay, args.frq_type, passes=args.passes, annotate=args.annotate,
+    )
 
     if not result.get("ok"):
         print("ERROR:", result.get("error"), file=sys.stderr)
@@ -59,6 +63,18 @@ def main() -> int:
     print("Top fixes:")
     for i, fx in enumerate(result["top_fixes"], 1):
         print(f"  {i}. {fx}")
+
+    anns = result.get("annotations") or []
+    if anns:
+        located = sum(1 for a in anns if a.get("located"))
+        print(f"\nMargin notes ({located}/{len(anns)} anchored to the text):")
+        for a in anns:
+            tag = a.get("type", "note")
+            flag = "" if a.get("located") else "  [unanchored]"
+            print(f"  • [{tag}] “{a.get('quote','')[:60]}”{flag}")
+            print(f"      {a.get('comment','')}")
+            if a.get("suggestion"):
+                print(f"      💡 {a['suggestion']}")
     if result["meta"]["passes"] > 1:
         print(f"\n(self-consistency samples: {result['meta']['row_score_samples']})")
     return 0

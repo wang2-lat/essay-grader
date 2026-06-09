@@ -8,6 +8,12 @@
     thesis: "#6366f1", evidence: "#0ea5e9", organization: "#8b5cf6", cohesion: "#06b6d4",
     vocabulary: "#f59e0b", grammar: "#ef4444", syntax: "#f97316", conventions: "#ec4899",
     style: "#14b8a6", praise: "#22c55e",
+    commentary: "#0284c7", reasoning: "#7c3aed", sophistication: "#d946ef",
+  };
+  const TYPE_LABELS = {
+    thesis: "Row A · Thesis", evidence: "Row B · Evidence", commentary: "Row B · Commentary",
+    reasoning: "Row B · Reasoning", sophistication: "Row C · Sophistication",
+    grammar: "Grammar", praise: "Strength",
   };
   const DIM_LABELS = { cohesion: "Cohesion", syntax: "Syntax", vocabulary: "Vocabulary", phraseology: "Phraseology", grammar: "Grammar", conventions: "Conventions" };
 
@@ -106,6 +112,15 @@
         `<span class="egx-apscore">${row.score}/${max}</span>${gate}</div>` +
         `<p class="egx-muted">${why}</p></div>`;
     }).join("");
+    const anns = data.annotations || [];
+    const commentsCard = anns.length
+      ? `<div class="egx-card">
+          <div class="egx-annhead"><h3>Margin notes <span class="egx-muted">${anns.length} notes</span></h3>
+            <label class="egx-toggle"><input type="checkbox" id="egx-all"> Show all</label></div>
+          <p class="egx-muted egx-tiny">Each note is tagged to its rubric row. Click a highlight to show/hide its comment.</p>
+          <article id="egx-essay" class="egx-essay"></article>
+        </div>`
+      : "";
     r.innerHTML =
       `<div class="egx-aptotal">${data.total ?? "–"}<small>/6</small>` +
       `<span class="egx-muted"> ${esc(data.frq_label || "")}</span></div>` +
@@ -114,7 +129,12 @@
       ((data.top_fixes || []).length
         ? `<div class="egx-card"><h3>Top fixes</h3><ol>${
             data.top_fixes.map((f) => `<li>${esc(f)}</li>`).join("")}</ol></div>`
-        : "");
+        : "") +
+      commentsCard;
+    if (anns.length) {
+      buildEssay(data.text || "", anns);
+      r.querySelector("#egx-all").addEventListener("change", (e) => toggleAll(e.target.checked));
+    }
   }
 
   // ---- render ----
@@ -160,6 +180,8 @@
       mark.className = "egx-ann";
       mark.style.borderBottomColor = TYPE_COLORS[a.type] || "#94a3b8";
       mark.textContent = text.slice(a.start, a.end);
+      mark.dataset.idx = a._idx;
+      mark.title = a.type;
       mark.addEventListener("click", () => toggleComment(mark, a));
       body.appendChild(mark);
       body._anns[a._idx] = a;
@@ -172,7 +194,7 @@
     const div = document.createElement("div");
     div.className = "egx-comment";
     div.style.borderLeftColor = TYPE_COLORS[a.type] || "#94a3b8";
-    div.innerHTML = `<span class="egx-ctype">${esc(a.type)}</span><p>${esc(a.comment)}</p>` +
+    div.innerHTML = `<span class="egx-ctype">${esc(TYPE_LABELS[a.type] || a.type)}</span><p>${esc(a.comment)}</p>` +
       (a.suggestion ? `<p class="egx-sug">💡 ${esc(a.suggestion)}</p>` : "");
     return div;
   }
@@ -185,10 +207,8 @@
     const body = panel.querySelector("#egx-essay");
     body.querySelectorAll(".egx-comment").forEach((n) => n.remove());
     if (!on) return;
-    const keys = Object.keys(body._anns);
-    let i = 0;
     body.querySelectorAll("mark.egx-ann").forEach((mark) => {
-      const a = body._anns[keys[i++]];
+      const a = body._anns[mark.dataset.idx];
       if (a) mark.insertAdjacentElement("afterend", commentEl(a));
     });
   }

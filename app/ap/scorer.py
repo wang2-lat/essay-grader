@@ -24,6 +24,7 @@ from typing import Any, Optional
 
 from ..core import grader
 from . import anchors as A
+from . import annotator as N
 from . import rubric as R
 
 
@@ -212,6 +213,8 @@ def score_essay(
     dedicated_c: bool = False,  # validated: GLM-4.6 won't award Row C even with a
                                 # focused contrastive judge → no gain, costs a call.
                                 # Kept available for a stronger judge model.
+    annotate: bool = False,     # add span-anchored, rubric-tagged margin notes
+                                # (one extra dedicated pass; see app.ap.annotator)
 ) -> dict[str, Any]:
     """Score one essay. Returns row scores, total, rationales, and metadata.
 
@@ -284,7 +287,7 @@ def score_essay(
             pass
 
     total = a + b + c
-    return {
+    result: dict[str, Any] = {
         "ok": True,
         "frq_type": frq_type,
         "frq_label": rb.label,
@@ -315,6 +318,7 @@ def score_essay(
         },
         "overall_comment": rep.get("overall_comment", ""),
         "top_fixes": rep.get("top_fixes", []) or [],
+        "annotations": [],
         "meta": {
             "model": grader.current_model(),
             "passes": passes,
@@ -322,3 +326,19 @@ def score_essay(
             "errors": errors,
         },
     }
+
+    # Span-anchored margin notes, grounded in the row verdict we just computed.
+    # Annotations are additive — they must never turn a successful score into an
+    # error, so any failure here degrades to "no notes" instead of raising.
+    if annotate:
+        try:
+            result["annotations"] = N.annotate(
+                essay, frq_type, result["rows"],
+                prompt_text=prompt_text, source_material=source_material,
+                use_anchors=use_anchors,
+                errors=result["meta"]["errors"],
+            )
+        except Exception as exc:  # noqa: BLE001
+            result["meta"]["errors"].append(f"annotate: {exc}")
+
+    return result

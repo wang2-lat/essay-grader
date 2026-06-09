@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Essay Grader",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "Score essays on the official AP English Language 6-point analytic rubric (Thesis / Evidence & Commentary / Sophistication) — on Google Docs or any page. Also includes a quick language check.",
   "icons": {
     "16": "icons/icon16.png",

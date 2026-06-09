@@ -3,6 +3,15 @@ const TYPE_COLORS = {
   thesis: "#6366f1", evidence: "#0ea5e9", organization: "#8b5cf6", cohesion: "#06b6d4",
   vocabulary: "#f59e0b", grammar: "#ef4444", syntax: "#f97316", conventions: "#ec4899",
   style: "#14b8a6", praise: "#22c55e",
+  // AP rubric-row annotation types
+  commentary: "#0284c7", reasoning: "#7c3aed", sophistication: "#d946ef",
+};
+
+// label shown on each margin note's tag chip
+const TYPE_LABELS = {
+  thesis: "Row A · Thesis", evidence: "Row B · Evidence", commentary: "Row B · Commentary",
+  reasoning: "Row B · Reasoning", sophistication: "Row C · Sophistication",
+  grammar: "Grammar", praise: "Strength",
 };
 
 const $ = (id) => document.getElementById(id);
@@ -56,7 +65,8 @@ $("grabBtn").addEventListener("click", async () => {
 
 $("settingsBtn").addEventListener("click", () => chrome.runtime.openOptionsPage());
 $("gradeBtn").addEventListener("click", grade);
-$("showAll").addEventListener("change", (e) => toggleAll(e.target.checked));
+$("showAll").addEventListener("change", (e) => toggleAll(e.target.checked, $("essayBody")));
+$("apShowAll").addEventListener("change", (e) => toggleAll(e.target.checked, $("apEssayBody")));
 
 function syncMode() {
   $("frq").style.display = $("mode").value === "ap" ? "" : "none";
@@ -87,6 +97,12 @@ function renderAP(data) {
   $("apComment").textContent = data.overall_comment || "";
   $("apFixes").innerHTML = (data.top_fixes || []).map((f) => `<li>${esc(f)}</li>`).join("");
   $("apFixesCard").hidden = !(data.top_fixes || []).length;
+
+  const anns = data.annotations || [];
+  $("apAnnCount").textContent = anns.length + " notes";
+  $("apCommentsCard").hidden = anns.length === 0;
+  buildEssay(data.text || $("essay").value, anns, $("apEssayBody"));
+  $("apShowAll").checked = false;
 }
 
 // ---- grading ----
@@ -143,7 +159,8 @@ function render(data) {
   $("showAll").checked = false;
 }
 
-function buildEssay(text, anns) {
+function buildEssay(text, anns, body) {
+  body = body || $("essayBody");
   // located, non-overlapping spans in order
   const located = anns
     .map((a, i) => ({ ...a, _idx: i }))
@@ -156,7 +173,6 @@ function buildEssay(text, anns) {
     spans.push(a);
     lastEnd = a.end;
   }
-  const body = $("essayBody");
   body.innerHTML = "";
   let cursor = 0;
   for (const a of spans) {
@@ -191,12 +207,13 @@ function commentEl(a) {
   div.className = "inline-comment";
   div.style.borderLeftColor = TYPE_COLORS[a.type] || "#94a3b8";
   const sug = a.suggestion ? `<p class="sug">💡 ${esc(a.suggestion)}</p>` : "";
-  div.innerHTML = `<span class="ctype">${esc(a.type)}</span><p>${esc(a.comment)}</p>${sug}`;
+  const label = TYPE_LABELS[a.type] || a.type;
+  div.innerHTML = `<span class="ctype">${esc(label)}</span><p>${esc(a.comment)}</p>${sug}`;
   return div;
 }
 
-function toggleAll(on) {
-  const body = $("essayBody");
+function toggleAll(on, body) {
+  body = body || $("essayBody");
   body.querySelectorAll(".inline-comment").forEach((n) => n.remove());
   if (!on) return;
   body.querySelectorAll("mark.ann").forEach((mark) => {

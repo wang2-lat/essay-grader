@@ -19,6 +19,7 @@ ELLIPSE 量表评的是**语言能力**（流畅/语法/词汇），所以一篇
 - **量表分解**：Row A 论点(0–1) + Row B 证据&评析(0–4) + Row C sophistication(0–1)，分行打分再求和；Row B 第 4 分的"语法门控"硬规则在代码里强制执行。量表原文见 `data/ap/scoring_guidelines_2024_set1_raw.txt`。
 - **样卷锚定**：用官方打过分的真实样卷做 few-shot 锚点（`data/ap/samples.json`，2024 set-1）。
 - **不微调**：公开拿不到成规模 AP 标注数据，所以是"量表接地 + 样卷锚定 + 自洽多趟"的 LLM 评委（2025 年低数据 AES 的 SOTA 路线），**不假装训练**。
+- **逐句批注（margin notes）**：评分后单独一趟专职批注（`app/ap/annotator.py`），每条按量表行打标（thesis/evidence/commentary/reasoning/sophistication/grammar/praise）、以已出的 Row 评分结论为依据（不会嘴上夸、分上扣）、引文逐字回贴原文做确定性验证（对不上的标 `located:false`、不参与高亮）。行为检查跑 `scripts/ap_annotate_check.py`（注意：那是锚定率/覆盖度检查，**不是**准确度 — 批注没有公开金标准，不编数）。
 
 **诚实的准确度（实测，非编造）**：在 26 篇无泄漏官方留出样卷（2023 全部 + 2024 set-2）上，总分 **QWK ≈ 0.6（相邻±1 一致率 ~85%）**，落在文献天花板区间，即"逼近第二位人类阅卷员"。复现：`./.venv/bin/python -m app.ap.eval --holdout --passes 3`。
 
@@ -106,8 +107,8 @@ cp .env.example .env
 
 ## Chrome 扩展（Google Docs 常驻批注 + 任意网页）
 
-`extension/`（v0.3.0）是一个 Manifest V3 扩展。每个面板顶部有**模式开关**：
-- **AP score（官方量表）** + 题型下拉（Rhetorical Analysis / Argument / Synthesis）→ 出 Row A/B/C 拆分评分（走 `/api/ap_grade`）
+`extension/`（v0.4.0）是一个 Manifest V3 扩展。每个面板顶部有**模式开关**：
+- **AP score（官方量表）** + 题型下拉（Rhetorical Analysis / Argument / Synthesis）→ 出 Row A/B/C 拆分评分 + **逐句 margin notes**（按量表行打标：Row A thesis / Row B evidence·commentary·reasoning / Row C sophistication / grammar / praise，走 `/api/ap_grade`）
 - **Quick language check** → ELLIPSE 语言评分 + 内联批注（走 `/api/grade`）
 
 两种用法：
@@ -139,8 +140,12 @@ POST /api/grade      Header: X-API-Key: <GRADER_API_TOKEN>（留空则免鉴权�
 
 POST /api/ap_grade   Header: X-API-Key: <GRADER_API_TOKEN>   # 官方 AP 6 分制
   body: {"text": "...", "frq_type": "rhetorical_analysis|argument|synthesis",
-         "prompt": "可选", "source_material": "可选", "passes": 1}
-  返回: {total, max_total:6, rows:{A_thesis,B_evidence_commentary,C_sophistication}, overall_comment, top_fixes, meta}
+         "prompt": "可选", "source_material": "可选", "passes": 1, "annotate": true}
+  返回: {total, max_total:6, rows:{A_thesis,B_evidence_commentary,C_sophistication},
+         overall_comment, top_fixes, annotations:[{quote,type,row,comment,suggestion,start,end,located}],
+         meta, text}
+  # annotations = 量表行打标的逐句批注（annotate:false 可关掉，省一次模型调用）；
+  # 批注是附加项 — 批注环节失败只会返回空数组，绝不影响评分本身
 
 GET  /api/health     → {ok, model, configured}
 ```
@@ -160,15 +165,17 @@ app/
   ap/                ★ AP 官方量表评分
     rubric.py        AP 6 分制量表（3 题 Row A/B/C 官方原文）
     scorer.py        量表分解 + 自洽多趟 + 语法门控（含 dedicated_c 备用开关）
+    annotator.py     逐句 margin notes（量表行打标 + 评分结论接地 + 引文逐字验证）
     anchors.py       官方样卷 few-shot 锚定（2024 set-1，无泄漏）
     eval.py          QWK / 完全 / 相邻一致率 评测台
   data/calibration.json   ELLIPSE 评分校准锚点
   templates/  static/     站内 Google-Docs 风格结果页
-extension/           Chrome MV3 扩展 v0.3.0（AP 模式 + 语言模式；Docs 常驻 + 侧边栏）
+extension/           Chrome MV3 扩展 v0.4.0（AP 模式含 margin notes + 语言模式；Docs 常驻 + 侧边栏）
   manifest.json background.js content.* sidepanel.* options.* icons/
 scripts/
   build_calibration.py   从 ELLIPSE 语料抽校准样本
-  ap_grade.py            命令行跑 AP 评分
+  ap_grade.py            命令行跑 AP 评分（--annotate 同时出 margin notes）
+  ap_annotate_check.py   批注行为检查（锚定率/覆盖度/量表行分布 — 不是准确度，见文件头注释）
   build_ap_samples.py    下载官方样卷 PDF → fitz 栅格化 → 视觉转写 → 引文校验
   seed_demo.py  try_grade.py
 data/ap/             AP 量表原文 + samples.json（样卷 PDF 与转写缓存 gitignore）
