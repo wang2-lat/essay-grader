@@ -1,5 +1,7 @@
 # 作文评分系统 (Essay Grader)
 
+[![CI](https://github.com/wang2-lat/essay-grader/actions/workflows/ci.yml/badge.svg)](https://github.com/wang2-lat/essay-grader/actions/workflows/ci.yml)
+
 像真实老师一样给高中英文作文打分 + 逐句批注 + 给改进建议。老师布置作业、复核反馈；学生提交作文、即时拿到评分和批注。
 
 ## 它怎么"像真老师"
@@ -181,6 +183,21 @@ scripts/
 data/ap/             AP 量表原文 + samples.json（样卷 PDF 与转写缓存 gitignore）
 data/raw/            ELLIPSE 原始语料 (gitignore)
 ```
+
+## 测试（离线，不调用任何模型）
+
+```bash
+./.venv/bin/pip install -r requirements.txt -r requirements-dev.txt
+./.venv/bin/python -m pytest -v
+```
+
+`tests/` 覆盖三类纯逻辑：AP 量表的行分数截断、求和与 Row B 语法门控（`app/ap/scorer.py`）；批注引文定位，即逐字或忽略空白差异回贴原文，对不上时标 `located:false`（`app/core/grader.py`）；防滥用闸（`app/core/limiter.py`）以及它在 `/api/grade`、`/api/ap_grade` 上返回 429 的接线。所有模型调用都用 `tests/conftest.py` 里的假客户端代替，测试期间任何联网尝试都会直接报错，所以不需要 `GRADER_API_KEY`。GitHub Actions（`.github/workflows/ci.yml`）在每次 push 和 PR 时都会跑这些测试。
+
+注意：这些测试检查的是代码规则是否被正确执行，**不衡量评分准确度**。准确度看上面的 `app.ap.eval --holdout`。
+
+## 许可证
+
+[MIT](LICENSE)。
 
 ## 注意事项 / 生产化 TODO
 
